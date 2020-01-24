@@ -1,5 +1,6 @@
 package com.example.gewerbeanmeldung.Answers;
 
+import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import com.example.gewerbeanmeldung.FormFilled.FormFilledService;
 import com.example.gewerbeanmeldung.Question.Question;
 import com.example.gewerbeanmeldung.Question.QuestionService;
 import com.example.gewerbeanmeldung.dbfile.DatabaseFileService;
+import com.example.gewerbeanmeldung.generator.PDFService;
 
 @Service
 public class AnswersService {
@@ -24,6 +26,8 @@ public class AnswersService {
 	private QuestionService qService;
 	@Autowired
 	private DatabaseFileService dbService;
+	@Autowired
+	private PDFService pdfService;
 
 
 //--------------------- The Get Functions ----------------------------------	
@@ -70,7 +74,7 @@ public class AnswersService {
 		if(aoaList != null) {
 			for(int i = 0; i < aoaList.size(); i++) {
 				aoaList.get(i).setAnswers(answer);
-				aoaService.addAnswerOfAnswer(aoaList.get(i));		
+				aoaService.addAnswerOfAnswers(aoaList.get(i));		
 			}
 		}
 			
@@ -99,8 +103,12 @@ public class AnswersService {
 			}
 			i++;
 		}
-		
-		return "successfully saved all inputs";
+		try {
+			pdfService.generatePDF(form_id);
+		} catch (IOException e) {
+			return "We saved your inputs, but there was a problem with sending the pdf of it to your mail";
+		}
+		return "successfully saved all inputs and we generated a pdf. It's being send to the email: gethackingyourlife@gmail.com";
 	}
 	
 //--------------------- The Delete Functions ----------------------------------		
@@ -131,7 +139,7 @@ public class AnswersService {
 	public String deleteAnswerOfFormFilled(Answers answer) {
 	
 		for(int i = 0; i < answer.getAoa().size(); i++) {
-			aoaService.deleteAnswerOfAnswer(answer.getAoa().get(i));
+			aoaService.deleteAnswerOfAnswers(answer.getAoa().get(i));
 		}
 		if(answer.getAnswerType().equals("fileanswer")){
 			dbService.deleteFileByAnswerId(answer);
@@ -248,11 +256,11 @@ public class AnswersService {
 		}
 		if (aoa_new.size() != 0) {
 			for(int x = 0; x < aoa_new.size(); x++) {
-				aoaService.addAnswerOfAnswer(aoa_new.get(x));
+				aoaService.addAnswerOfAnswers(aoa_new.get(x));
 			}
 		}else if(aoa_old.size() != 0){
 			for(int x = 0; x < aoa_old.size(); x++) {
-				aoaService.deleteAnswerOfAnswer(aoa_old.get(x));
+				aoaService.deleteAnswerOfAnswers(aoa_old.get(x));
 			}
 		}
 		return aoaService.getAllAnswerOfAnswersByAnswerId(answer_id);
@@ -269,6 +277,7 @@ public class AnswersService {
 		String answerType = "normal";
 		
 		//Gets the Type of the Question to look which answer type we have to set
+		qService.getQuestionById(question_id).getId();
 		String type = qService.getQuestionById(question_id).getQuestionType().getType();
 		
 		//Searches which answertype is right and sets it
