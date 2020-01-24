@@ -36,7 +36,7 @@ public class PDFService {
 	
 	public String generatePDF(Integer fId) throws IOException{
 		String filename = generateFilename(fId);
-		String DEST = "/Users/moritzschelkle/Desktop/test/"+filename+".pdf";
+		String DEST = "savedforms/"+filename+".pdf";
 		 File file = new File(DEST);
 	        file.getParentFile().mkdirs();
 	        List<Answers> aList = getAllAnswers(fId);
